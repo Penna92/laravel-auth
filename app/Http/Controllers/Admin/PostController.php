@@ -9,6 +9,10 @@ use App\Post;
 
 class PostController extends Controller
 {
+    protected $validationRule = [
+        'title' => 'required|max:100',
+        'content' => 'required',
+    ];
     /**
      * Display a listing of the resource.
      *
@@ -38,6 +42,7 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate($this->validationRule);
         $data = $request->all();
         $newPost = new Post();
         $newPost->title = $data['title'];
@@ -89,6 +94,7 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
+        $request->validate($this->validationRule);
         $data = $request->all();
         // @dd($data);
         // @dd($data['published']);
