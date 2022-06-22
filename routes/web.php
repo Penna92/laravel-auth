@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth; // se non si vuol vedere l'errore bisogna trovare la classe a cui appartiene
 
 /*
 |--------------------------------------------------------------------------
@@ -28,4 +29,11 @@ Route::middleware('auth')
     ->group(function () {
         Route::get('/', 'HomeController@index')->name('home');
         // Route::get('/posts', 'PostController@index')->name('listapost'); //localhost:8000/admin/posts
+        Route::resource('/posts', 'PostController');
     });
+
+
+// LA ROTTA DI FALLBACK SEMPRE ALLA FINE DEL WEB.PHP!
+Route::get("{any?}", function () {
+    return view('guest.home');
+})->where('any', ".*");

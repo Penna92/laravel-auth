@@ -19549,6 +19549,10 @@ nav a {
   text-decoration: none;
   color: white;
 }
+nav a:hover {
+  color: white;
+  text-decoration: none;
+}
 
 h1 {
   font-size: 48px;
