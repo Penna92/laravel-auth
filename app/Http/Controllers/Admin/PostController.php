@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Post;
+use App\Category;
 
 class PostController extends Controller
 {
     protected $validationRule = [
-        'title' => 'required|max:100',
+        'title' => 'required|string|max:100',
         'content' => 'required',
+        "publisehed" => "sometimes|accepted",
+        "category_id" => "nullable|exists:categories,id",
+        // "image" => 
+        // "tag" =>
     ];
     /**
      * Display a listing of the resource.
@@ -31,7 +36,8 @@ class PostController extends Controller
      */
     public function create()
     {
-        return view('admin.posts.create');
+        $categories = Category::all();
+        return view('admin.posts.create', compact('categories'));
     }
 
     /**
@@ -46,16 +52,19 @@ class PostController extends Controller
         $data = $request->all();
         $newPost = new Post();
         $newPost->title = $data['title'];
-        $slug = Str::of($data['title'])->slug("-");
         $newPost->content = $data['content'];
-        $newPost->published = isset($data['published']);
+        $newPost->published = isset($data['published']); //true o false
         // $newPost->published = ($data['published']);
+        $newPost->category_id = $data['category_id'];
+
+        $slug = Str::of($data['title'])->slug("-");
         $count = 1;
         while (Post::where('slug', $slug)->first()) {
             $slug = Str::of($data['title'])->slug("-") . "-{$count}";
             $count++;
         }
         $newPost->slug = $slug;
+        // $newPost->slug = $this->getSlug($newPost->title);
         $newPost->save();
         // la traduzione in mysql = vai a prendere dalla tabella dei Post tutti quelli che hanno lo slug uguale a questa stringa qua e cambialo in questo modo
         return redirect()->route('admin.posts.show', $newPost->id);
@@ -70,6 +79,7 @@ class PostController extends Controller
     public function show($id)
     {
         $post = Post::findOrFail($id);
+        // dd($post);
         return view('admin.posts.show', compact('post'));
     }
 
@@ -82,7 +92,8 @@ class PostController extends Controller
     public function edit($id)
     {
         $post = Post::findOrFail($id);
-        return view('admin.posts.edit', compact('post'));
+        $categories = Category::all();
+        return view('admin.posts.edit', compact('post', 'categories'));
     }
 
     /**
@@ -108,8 +119,22 @@ class PostController extends Controller
         } else {
             $data['published'] = "0";
         };
-        $post->update($data);
-        $data = $request->all();
+        // $post->update($data);
+        // $data = $request->all();
+
+        //controllo sullo slug
+        if ($post->title != $data['title']) {
+            $post->title = $data['title'];
+            $slug = Str::of($post->title)->slug("-");
+            if ($slug != $post->slug) {
+                $post->slug = $this->getSlug($post->title);
+            }
+        }
+        $post->category_id = $data['category_id'];
+        $post->content = $data['content'];
+        $post->published = isset($data["published"]);
+        $post->update();
+
         return redirect()->route('admin.posts.show', $post->id);
     }
 
@@ -123,6 +148,21 @@ class PostController extends Controller
     {
         $post = Post::findOrFail($id);
         $post->delete();
-        return redirect()->route('admin.posts.index');
+        return redirect()->route('admin.posts.index')->with("message", "Post with id: {$post->id} successfully deleted !");
+    }
+
+    // CREAZIONE FUNZIONE GET SLUG
+    private function getSlug($title)
+    {
+        $slug = Str::of($title)->slug("-");
+        $count = 1;
+
+        //prendi il primo post il cui slug è uguale a $slug
+        // se è presente allora genero un nuovo slug aggiungendo -$count
+        while (Post::where("slug", $slug)->first()) {
+            $slug = Str::of($title)->slug("-") . "-{$count}";
+            $count++;
+        }
+        return $slug;
     }
 }
