@@ -6,6 +6,8 @@
         <h1>Titolo: {{$post->title}}</h1>
         @if($post->category != null)
         <h2>Categoria: {{$post->category->name}}</h2>
+        @else
+        <h2>Nessuna categoria assegnata</h2>
         @endif
         <small>Creato il: {{$post->created_at}}</small>
     </div>
