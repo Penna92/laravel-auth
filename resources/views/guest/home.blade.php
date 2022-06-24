@@ -23,6 +23,7 @@
             <div class="d-flex">
                 @auth
                 <a href=" {{ url('/admin') }}" class="mx-5 ">Home</a>
+
                 @else
                 <a href="{{ route('login') }}" class="">Login</a>
 

@@ -1,5 +1,6 @@
 @extends('layouts.admin')
 {{-- @dump($post); --}}
+{{-- @dump($post->tags) --}}
 @section('content')
 <div class="container d-flex flex-column my-3 gap-5">
     <div>
@@ -22,5 +23,13 @@
     @else
     <h5>Non pubblicato</h5>
     @endif
+    <div>
+        <h5>Tags</h5>
+        <ul>
+            @foreach($post->tags as $item)
+            <li>{{$item->name}}</li>
+            @endforeach
+        </ul>
+    </div>
 </div>
 @endsection

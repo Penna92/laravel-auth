@@ -30,6 +30,8 @@ Route::middleware('auth')
         Route::get('/', 'HomeController@index')->name('home');
         // Route::get('/posts', 'PostController@index')->name('listapost'); //localhost:8000/admin/posts
         Route::resource('/posts', 'PostController');
+        Route::resource('/categories', 'CategoryController');
+        Route::resource('/tags', 'TagController');
     });
 
 

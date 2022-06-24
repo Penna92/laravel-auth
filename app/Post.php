@@ -13,4 +13,10 @@ class Post extends Model
     {
         return $this->belongsTo('App\Category');
     }
+
+    //creo funzione con lo stesso nome della tabella a cui mi collego, stavolta al PLURALE perchè la relazione è MANY TO MANY
+    public function tags()
+    {
+        return $this->belongsToMany('App\Tag');
+    }
 }

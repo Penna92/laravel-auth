@@ -7,16 +7,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Post;
 use App\Category;
+use App\Tag;
 
 class PostController extends Controller
 {
     protected $validationRule = [
         'title' => 'required|string|max:100',
         'content' => 'required',
-        "publisehed" => "sometimes|accepted",
+        "published" => "sometimes|accepted",
         "category_id" => "nullable|exists:categories,id",
         // "image" => 
-        // "tag" =>
+        "tags" => ""
     ];
     /**
      * Display a listing of the resource.
@@ -25,7 +26,8 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts = Post::all();
+        // $posts = Post::all();
+        $posts = Post::paginate(5);
         return view('admin.posts.index', compact('posts'));
     }
 
@@ -37,7 +39,8 @@ class PostController extends Controller
     public function create()
     {
         $categories = Category::all();
-        return view('admin.posts.create', compact('categories'));
+        $tags = Tag::all();
+        return view('admin.posts.create', compact('categories', 'tags'));
     }
 
     /**
@@ -50,6 +53,7 @@ class PostController extends Controller
     {
         $request->validate($this->validationRule);
         $data = $request->all();
+        // dd($data);
         $newPost = new Post();
         $newPost->title = $data['title'];
         $newPost->content = $data['content'];
@@ -65,8 +69,11 @@ class PostController extends Controller
         }
         $newPost->slug = $slug;
         // $newPost->slug = $this->getSlug($newPost->title);
-        $newPost->save();
         // la traduzione in mysql = vai a prendere dalla tabella dei Post tutti quelli che hanno lo slug uguale a questa stringa qua e cambialo in questo modo
+        $newPost->save();
+        if (isset($data['tags'])) {
+            $newPost->tags()->sync($data['tags']);
+        }
         return redirect()->route('admin.posts.show', $newPost->id);
     }
 
@@ -93,7 +100,9 @@ class PostController extends Controller
     {
         $post = Post::findOrFail($id);
         $categories = Category::all();
-        return view('admin.posts.edit', compact('post', 'categories'));
+        $tags = Tag::all();
+        return view('admin.posts.edit', compact('post', 'categories', 'tags'));
+        // return view('admin.posts.edit')->with('post', 'categories', 'tags');
     }
 
     /**
@@ -135,6 +144,10 @@ class PostController extends Controller
         $post->published = isset($data["published"]);
         $post->update();
 
+        //METODO SYNC ANCHE QUI CON CONTROLLO
+        if (isset($data['tags'])) {
+            $post->tags()->sync($data['tags']);
+        }
         return redirect()->route('admin.posts.show', $post->id);
     }
 
@@ -144,9 +157,10 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Post $post)
     {
-        $post = Post::findOrFail($id);
+        $post->tags()->sync([]);
+        // $post = Post::findOrFail($post);
         $post->delete();
         return redirect()->route('admin.posts.index')->with("message", "Post with id: {$post->id} successfully deleted !");
     }
